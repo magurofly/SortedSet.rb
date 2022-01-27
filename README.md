@@ -4,7 +4,7 @@
 
 ## ドキュメント
 
-### SortedSet
+### [SortedSet](https://github.com/magurofly/SortedSet.rb/blob/main/SortedSet.rb)
 
 特に断りがない場合、 N は要素数を指します。
 

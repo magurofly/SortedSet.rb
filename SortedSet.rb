@@ -112,15 +112,17 @@ SortedSet = Class.new do
   # Find the largest element < x, or nil if it doesn't exist.
   def lt(x)
     @a.reverse_each do |a|
-      return a[a.bsearch_index { |y| y >= x } - 1] if a[0] < x
+      return a[(a.bsearch_index { |y| y >= x } || a.size) - 1] if a[0] < x
     end
+    nil
   end
 
   # Find the largest element <= x, or nil if it doesn't exist.
   def le(x)
     @a.reverse_each do |a|
-      return a[a.bsearch_index { |y| y > x } - 1] if a[0] <= x
+      return a[(a.bsearch_index { |y| y > x } || a.size) - 1] if a[0] <= x
     end
+    nil
   end
 
   # Find the smallest element > x, or nil if it doesn't exist.
@@ -128,6 +130,7 @@ SortedSet = Class.new do
     @a.each do |a|
       return a.bsearch { |y| y > x } if a[-1] > x
     end
+    nil
   end
 
   # Find the smallest element >= x, or nil if it doesn't exist.
@@ -135,6 +138,7 @@ SortedSet = Class.new do
     @a.each do |a|
       return a.bsearch { |y| y >= x } if a[-1] >= x
     end
+    nil
   end
 
   # Return the x-th element, or nil if it doesn't exist.
