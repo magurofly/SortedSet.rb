@@ -3,7 +3,7 @@ SortedSet = Class.new do
   REBUILD_RATIO = 170
   
   include Enumerable
-  attr_reader :size
+  attr_reader :size, :a
 
   # Evenly divide `a` into buckets.
   def _build(a = nil)
@@ -11,6 +11,10 @@ SortedSet = Class.new do
     size = @size = a.size
     bucket_size = Math.sqrt(size.to_f / BUCKET_RATIO).ceil
     @a = (0 ... bucket_size).map { |i| a[size * i / bucket_size ... size * (i + 1) / bucket_size] }
+  end
+
+  def empty?
+    @size == 0
   end
 
   # Make a new SortedSet from Enumerable. / O(N) if sorted and unique / O(N log N)
