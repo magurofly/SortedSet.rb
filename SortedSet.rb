@@ -1,3 +1,5 @@
+# SortedSet.rb version 1.1
+
 SortedSet = Class.new do
   BUCKET_RATIO = 50
   REBUILD_RATIO = 170
@@ -24,7 +26,7 @@ SortedSet = Class.new do
     _build(a)
   end
 
-  def each
+  def each(&block)
     unless block_given?
       return Enumerator.new do |y|
         each do |x|
@@ -33,13 +35,11 @@ SortedSet = Class.new do
       end
     end 
     @a.each do |i|
-      i.each do |j|
-        yield j
-      end
+      i.each(&block)
     end
   end
 
-  def reverse_each
+  def reverse_each(&block)
     unless block_given?
       return Enumerator.new do |y|
         reverse_each do |x|
@@ -48,14 +48,12 @@ SortedSet = Class.new do
       end
     end 
     @a.reverse_each do |i|
-      i.reverse_each do |j|
-        yield j
-      end
+      i.reverse_each(&block)
     end
   end
 
   def inspect
-    "SortedSet#{@a.inspect}"
+    "#{self.class.name}#{@a.inspect}"
   end
 
   def to_s
@@ -176,5 +174,33 @@ SortedSet = Class.new do
 
   def to_a
     @a.flatten
+  end
+end
+
+class SortedMultiset < SortedSet
+  # Make a new SortedMultiset from Enumerable. / O(N) if sorted / O(N log N)
+  def initialize(a = [])
+    a = a.to_a
+    a = a.uniq.sort unless a.each_cons(2).all? { |x, y| x <= y }
+    _build(a)
+  end
+
+  # Count the number of x.
+  def count(x)
+    rindex(x) - index(x)
+  end
+
+  # Add an element. / O(√N)
+  def add(x)
+    if empty?
+      @a = [[x]]
+      @size = 1
+      return
+    end
+    a = _find_bucket(x)
+    i = a.bsearch_index { |y| y > x } || a.size
+    a.insert(i, x)
+    @size += 1
+    _build if a.size > @a.size * REBUILD_RATIO
   end
 end
