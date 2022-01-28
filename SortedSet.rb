@@ -175,13 +175,78 @@ SortedSet = Class.new do
   def to_a
     @a.flatten
   end
+
+  # 以降、 Ruby の Set にあるメソッド
+
+  # Remove all elements
+  def clear
+    @a.clear
+    @size = 0
+  end
+
+  # Compute intersection of two sets / O(N) if enum is Set / O(N+M) if enum is SortedSet / O(M√N)
+  def intersection(enum)
+    case enum
+    when SortedSet
+      s, t, u = to_a, enum.to_a, []
+      n, m = s.size, t.size
+      i = j = 0
+      while i < n and j < m
+        i += 1 while i < n and s[i] < t[j]
+        j += 1 while j < m and s[i] > t[j] if i < n
+        while i < n and j < m and s[i] == t[j]
+          u << s[i]
+          i += 1
+          j += 1
+        end
+      end
+      self.class.new(u)
+    when Set
+      self.class.new(each.lazy.filter { |x| enum.include?(x) })
+    else
+      self.class.new(enum.lazy.filter { |x| include?(x) })
+    end
+  end
+  
+  alias :& :intersection
+
+  # Compute union of two sets / O(N+M) if enum is SortedSet / O(N+M√N)
+  def union(enum)
+    case enum
+    when SortedSet
+      s, t, u = to_a, enum.to_a, []
+      n, m = s.size, t.size
+      i = j = 0
+      while i < n or j < m
+        while i < n and (j == m or s[i] < t[j])
+          u << s[i]
+          i += 1
+        end
+        while j < m and (i == n or s[i] > t[j])
+          u << t[j]
+          j += 1
+        end
+        while i < n and j < m and s[i] == t[j]
+          u << s[i]
+          i += 1
+          j += 1
+        end
+      end
+      self.class.new(u)
+    else
+      self.class.new(self.chain(enum))
+    end
+  end
+
+  alias :| :union
+  alias :+ :union
 end
 
 class SortedMultiset < SortedSet
   # Make a new SortedMultiset from Enumerable. / O(N) if sorted / O(N log N)
   def initialize(a = [])
     a = a.to_a
-    a = a.uniq.sort unless a.each_cons(2).all? { |x, y| x <= y }
+    a = a.sort unless a.each_cons(2).all? { |x, y| x <= y }
     _build(a)
   end
 
