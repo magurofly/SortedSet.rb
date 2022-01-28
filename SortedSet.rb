@@ -7,6 +7,10 @@ SortedSet = Class.new do
   include Enumerable
   attr_reader :size, :a
 
+  def self.[](*elements)
+    new(elements)
+  end
+
   # Evenly divide `a` into buckets.
   def _build(a = nil)
     a ||= to_a
@@ -176,6 +180,8 @@ SortedSet = Class.new do
     @a.flatten
   end
 
+  alias :to_ary :to_a
+
   # 以降、 Ruby の Set にあるメソッド
 
   # Remove all elements
@@ -186,56 +192,46 @@ SortedSet = Class.new do
 
   # Compute intersection of two sets / O(N) if enum is Set / O(N+M) if enum is SortedSet / O(M√N)
   def intersection(enum)
-    case enum
-    when SortedSet
-      s, t, u = to_a, enum.to_a, []
-      n, m = s.size, t.size
-      i = j = 0
-      while i < n and j < m
-        i += 1 while i < n and s[i] < t[j]
-        j += 1 while j < m and s[i] > t[j] if i < n
-        while i < n and j < m and s[i] == t[j]
-          u << s[i]
-          i += 1
-          j += 1
-        end
+    s, t, u = to_a, enum.to_a, []
+    t.sort! unless a.each_cons(2).all? { |x, y| x <= y }
+    n, m = s.size, t.size
+    i = j = 0
+    while i < n and j < m
+      i += 1 while i < n and s[i] < t[j]
+      j += 1 while j < m and s[i] > t[j] if i < n
+      while i < n and j < m and s[i] == t[j]
+        u << s[i]
+        i += 1
+        j += 1
       end
-      self.class.new(u)
-    when Set
-      self.class.new(each.lazy.filter { |x| enum.include?(x) })
-    else
-      self.class.new(enum.lazy.filter { |x| include?(x) })
     end
+    self.class.new(u)
   end
   
   alias :& :intersection
 
   # Compute union of two sets / O(N+M) if enum is SortedSet / O(N+M√N)
   def union(enum)
-    case enum
-    when SortedSet
-      s, t, u = to_a, enum.to_a, []
-      n, m = s.size, t.size
-      i = j = 0
-      while i < n or j < m
-        while i < n and (j == m or s[i] < t[j])
-          u << s[i]
-          i += 1
-        end
-        while j < m and (i == n or s[i] > t[j])
-          u << t[j]
-          j += 1
-        end
-        while i < n and j < m and s[i] == t[j]
-          u << s[i]
-          i += 1
-          j += 1
-        end
+    s, t, u = to_a, enum.to_a, []
+    t.sort! unless a.each_cons(2).all? { |x, y| x <= y }
+    n, m = s.size, t.size
+    i = j = 0
+    while i < n or j < m
+      while i < n and (j == m or s[i] < t[j])
+        u << s[i]
+        i += 1
       end
-      self.class.new(u)
-    else
-      self.class.new(self.chain(enum))
+      while j < m and (i == n or s[i] > t[j])
+        u << t[j]
+        j += 1
+      end
+      while i < n and j < m and s[i] == t[j]
+        u << s[i]
+        i += 1
+        j += 1
+      end
     end
+    self.class.new(u)
   end
 
   alias :| :union
