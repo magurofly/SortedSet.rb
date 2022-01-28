@@ -1,4 +1,4 @@
-# SortedSet.rb version 1.1
+# SortedSet.rb version 1.2.3
 
 SortedSet = Class.new do
   BUCKET_RATIO = 50
